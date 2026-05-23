@@ -1,5 +1,5 @@
 import { auth, db } from './firebase-config.js';
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 const loading = document.getElementById('loading');
@@ -11,10 +11,20 @@ const userName = document.getElementById('userName');
 let currentUser = null;
 let currentTenant = null;
 
+// Verificar resultado do redirect
+getRedirectResult(auth).then((result) => {
+  if (result) {
+    console.log('Login realizado com sucesso!');
+  }
+}).catch((error) => {
+  console.error('Erro no redirect:', error);
+  alert('Erro ao fazer login. Por favor, tente novamente.');
+});
+
 googleLoginBtn.addEventListener('click', async () => {
   const provider = new GoogleAuthProvider();
   try {
-    await signInWithPopup(auth, provider);
+    await signInWithRedirect(auth, provider);
   } catch (error) {
     console.error('Erro:', error);
     alert('Erro ao fazer login.');
