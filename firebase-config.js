@@ -4,7 +4,7 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase
 
 const firebaseConfig = {
   apiKey: "AIzaSyD5yZXVW3lp1OnXZK7DqCFQ2pULPl-a-wo",
-authDomain: "nexo-preditiva.github.io",  projectId: "studio-8906801948-ecb0a",
+  authDomain: "studio-8906801948-ecb0a.firebaseapp.com", projectId: "studio-8906801948-ecb0a",
   storageBucket: "studio-8906801948-ecb0a.firebasestorage.app",
   messagingSenderId: "8906801948",
   appId: "1:8906801948:web:0a662f8c4e5b6e0a4f1b2c"
