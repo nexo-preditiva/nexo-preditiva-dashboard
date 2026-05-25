@@ -18,8 +18,7 @@ getRedirectResult(auth).then((result) => {
   }
 }).catch((error) => {
   console.error('Erro no redirect:', error);
-  alert('Erro ao fazer login. Por favor, tente novamente.');
-});
+    alert('Erro ao fazer login: ' + error.code + ' - ' + error.message + '. Tente limpar o cache (Ctrl+Shift+Delete) e tentar novamente.');});
 
 googleLoginBtn.addEventListener('click', async () => {
   const provider = new GoogleAuthProvider();
