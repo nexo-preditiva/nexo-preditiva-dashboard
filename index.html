@@ -47,6 +47,20 @@
 </div>
 </main>
 </div>
+      <!-- WORKAROUND: Forçar exibição do login imediatamente -->
+    <script>
+    (function() {
+        var loading = document.getElementById('carregando');
+        var loginContainer = document.getElementById('loginContainer');
+        var dashboard = document.getElementById('dashboard');
+        
+        if (loading) loading.style.display = 'none';
+        if (loginContainer) loginContainer.style.display = 'flex';
+        if (dashboard) dashboard.style.display = 'none';
+        
+        console.log('WORKAROUND: Login exibido - aguardando app.js carregar');
+    })();
+    </script>
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="app.js"></script>
 </body>
