@@ -1,6 +1,5 @@
 import { auth, db } from './firebase-config.js';
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 // Force rebuild para limpar cache GitHub Pages
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
@@ -22,19 +21,29 @@ if (dashboard) dashboard.style.display = 'none';
 
 console.log('App iniciado - Login visível');
 
+// Verificar resultado do redirect do Google
+getRedirectResult(auth)
+  .then((result) => {
+    if (result) {
+      console.log('Login realizado com sucesso!', result.user.email);
+    }
+  })
+  .catch((error) => {
+    console.error('Erro ao processar redirect:', error);
+    alert('Erro ao fazer login: ' + error.code + ' - ' + error.message + '. Tente limpar o cache (Ctrl+Shift+Delete) e tente novamente.');
+  });
+
 // Botão de login do Google
 if (googleLoginBtn) {
     googleLoginBtn.addEventListener('click', async () => {
         const provider = new GoogleAuthProvider();
         try {
             console.log('Iniciando login com Google...');
-            const result = await signInWithPopup(auth, provider);
-            console.log('Login realizado com sucesso!', result.user.email);
+      signInWithRedirect(auth, provider);
         } catch (error) {
             console.error('Erro ao fazer login:', error);
             alert('Erro ao fazer login: ' + error.code + ' - ' + error.message + '. Tente limpar o cache (Ctrl+Shift+Delete) e tente novamente.');
-        }
-    });
+        }    });
 }
 
 // Botão de logout
