@@ -13,22 +13,23 @@ const leadsList = document.getElementById('leadsList');
 const leadsToday = document.getElementById('leadsToday');
 const leadsMonth = document.getElementById('leadsMonth');
 const conversionRate = document.getElementById('conversionRate');
+const leadForm = document.getElementById('leadForm');
+const formFeedback = document.getElementById('formFeedback');
+const btnRecarregar = document.getElementById('btnRecarregar');
 
 let currentUser = null;
 
-// Show/Hide screens
+// Screen control
 function showLoading() {
   if (loading) loading.style.display = 'flex';
   if (loginContainer) loginContainer.style.display = 'none';
   if (dashboard) dashboard.style.display = 'none';
 }
-
 function showLogin() {
   if (loading) loading.style.display = 'none';
   if (loginContainer) loginContainer.style.display = 'flex';
   if (dashboard) dashboard.style.display = 'none';
 }
-
 function showDashboard() {
   if (loading) loading.style.display = 'none';
   if (loginContainer) loginContainer.style.display = 'none';
@@ -36,57 +37,93 @@ function showDashboard() {
   loadLeads();
 }
 
-// Load Leads from Firestore
+// Load Leads
 async function loadLeads() {
   if (!currentUser || !leadsList) return;
-  leadsList.innerHTML = '<p>Carregando leads...</p>';
+  leadsList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Carregando leads...</p>';
   try {
     const q = query(
       collection(db, 'leads'),
       where('uid', '==', currentUser.uid),
       orderBy('createdAt', 'desc'),
-      limit(50)
+      limit(100)
     );
     const snapshot = await getDocs(q);
     const leads = [];
     snapshot.forEach(doc => leads.push({ id: doc.id, ...doc.data() }));
 
-    // Stats
     const now = new Date();
     const todayStr = now.toDateString();
-    const todayLeads = leads.filter(l => l.createdAt && new Date(l.createdAt.seconds * 1000).toDateString() === todayStr);
-    const monthLeads = leads.filter(l => l.createdAt && new Date(l.createdAt.seconds * 1000).getMonth() === now.getMonth());
-    if (leadsToday) leadsToday.textContent = todayLeads.length;
-    if (leadsMonth) leadsMonth.textContent = monthLeads.length;
+    const todayCount = leads.filter(l => l.createdAt && new Date(l.createdAt.seconds * 1000).toDateString() === todayStr).length;
+    const monthCount = leads.filter(l => l.createdAt && new Date(l.createdAt.seconds * 1000).getMonth() === now.getMonth() && new Date(l.createdAt.seconds * 1000).getFullYear() === now.getFullYear()).length;
     const converted = leads.filter(l => l.status === 'convertido').length;
     const rate = leads.length > 0 ? Math.round((converted / leads.length) * 100) : 0;
+
+    if (leadsToday) leadsToday.textContent = todayCount;
+    if (leadsMonth) leadsMonth.textContent = monthCount;
     if (conversionRate) conversionRate.textContent = rate + '%';
 
-    // Render
     if (leads.length === 0) {
-      leadsList.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">Nenhum lead cadastrado ainda.</p>';
+      leadsList.innerHTML = '<p style="text-align:center;color:#888;padding:30px;">Nenhum lead cadastrado. Use o formulario acima para adicionar.</p>';
       return;
     }
+
+    const statusLabels = { novo: 'Novo', contato: 'Em Contato', proposta: 'Proposta', negociacao: 'Negociacao', convertido: 'Convertido', perdido: 'Perdido' };
     leadsList.innerHTML = leads.map(lead => `
       <div class="lead-card">
         <div class="lead-info">
-          <strong>${lead.nome || 'Sem nome'}</strong>
-          <span>${lead.email || ''}</span>
-          <span>${lead.telefone || ''}</span>
+          <strong class="lead-nome">${lead.nome || 'Sem nome'}</strong>
+          ${lead.empresa ? '<span class="lead-empresa">' + lead.empresa + '</span>' : ''}
+          ${lead.email ? '<span class="lead-contact">' + lead.email + '</span>' : ''}
+          ${lead.telefone ? '<span class="lead-contact">' + lead.telefone + '</span>' : ''}
+          ${lead.origem ? '<span class="lead-origem">Origem: ' + lead.origem + '</span>' : ''}
+          ${lead.observacao ? '<span class="lead-obs">' + lead.observacao + '</span>' : ''}
         </div>
-        <span class="lead-status status-${lead.status || 'novo'}">${lead.status || 'novo'}</span>
+        <span class="lead-status status-${lead.status || 'novo'}">${statusLabels[lead.status] || 'Novo'}</span>
       </div>
     `).join('');
   } catch (err) {
     console.error('Erro ao carregar leads:', err);
-    leadsList.innerHTML = '<p style="color:red;">Erro ao carregar leads. Tente novamente.</p>';
+    leadsList.innerHTML = '<p style="color:red;padding:20px;">Erro ao carregar leads. Verifique o console.</p>';
   }
 }
 
-// Initialize
+// Add Lead
+async function addLead(e) {
+  e.preventDefault();
+  if (!currentUser) return;
+  const nome = document.getElementById('leadNome')?.value.trim();
+  if (!nome) return;
+  const btn = document.getElementById('btnSalvarLead');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+  if (formFeedback) { formFeedback.textContent = ''; formFeedback.className = 'form-feedback'; }
+  try {
+    await addDoc(collection(db, 'leads'), {
+      uid: currentUser.uid,
+      nome: nome,
+      email: document.getElementById('leadEmail')?.value.trim() || '',
+      telefone: document.getElementById('leadTelefone')?.value.trim() || '',
+      empresa: document.getElementById('leadEmpresa')?.value.trim() || '',
+      status: document.getElementById('leadStatus')?.value || 'novo',
+      origem: document.getElementById('leadOrigem')?.value.trim() || '',
+      observacao: document.getElementById('leadObservacao')?.value.trim() || '',
+      createdAt: serverTimestamp()
+    });
+    if (leadForm) leadForm.reset();
+    if (formFeedback) { formFeedback.textContent = 'Lead salvo com sucesso!'; formFeedback.className = 'form-feedback success'; }
+    setTimeout(() => { if (formFeedback) formFeedback.textContent = ''; }, 3000);
+    loadLeads();
+  } catch (err) {
+    console.error('Erro ao salvar lead:', err);
+    if (formFeedback) { formFeedback.textContent = 'Erro ao salvar. Tente novamente.'; formFeedback.className = 'form-feedback error'; }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar Lead'; }
+  }
+}
+
+// Init
 showLoading();
 
-// Auth state observer
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUser = user;
@@ -98,26 +135,29 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Google Login
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', async () => {
     try {
       googleLoginBtn.disabled = true;
       googleLoginBtn.textContent = 'Entrando...';
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, new GoogleAuthProvider());
     } catch (err) {
       console.error('Erro no login:', err);
       googleLoginBtn.disabled = false;
       googleLoginBtn.textContent = 'Entrar com Google';
-      alert('Erro ao fazer login: ' + err.message);
+      alert('Erro: ' + err.message);
     }
   });
 }
 
-// Logout
 if (logoutBtn) {
-  logoutBtn.addEventListener('click', () => {
-    signOut(auth).catch(err => console.error('Erro ao sair:', err));
-  });
+  logoutBtn.addEventListener('click', () => signOut(auth).catch(console.error));
+}
+
+if (leadForm) {
+  leadForm.addEventListener('submit', addLead);
+}
+
+if (btnRecarregar) {
+  btnRecarregar.addEventListener('click', loadLeads);
 }
