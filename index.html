@@ -7,49 +7,92 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <!-- Loading -->
   <div id="loading" class="loading">Carregando...</div>
 
   <!-- Login -->
   <div id="loginContainer" class="login-container" style="display:none">
     <div class="login-box">
-      <h1>🚀 NEXO PREDITIVA</h1>
-      <p>Sistema de Gestão de Leads</p>
+      <h1>NEXO PREDITIVA</h1>
+      <p>Sistema de Gestao de Leads</p>
       <button id="googleLoginBtn" class="btn-google">Entrar com Google</button>
     </div>
   </div>
 
   <!-- Dashboard -->
   <div id="dashboard" class="dashboard" style="display:none">
-    <header>
+    <header class="dash-header">
       <h1>NEXO PREDITIVA</h1>
       <div class="user-info">
         <span id="userName"></span>
-        <button id="logoutBtn">Sair</button>
+        <button id="logoutBtn" class="btn-logout">Sair</button>
       </div>
     </header>
-    <main>
-      <div class="stats">
+
+    <main class="dash-main">
+
+      <!-- Stats -->
+      <div class="stats-grid">
         <div class="stat-card">
           <h3>Leads Hoje</h3>
           <p id="leadsToday">0</p>
         </div>
         <div class="stat-card">
-          <h3>Total do Mês</h3>
+          <h3>Total do Mes</h3>
           <p id="leadsMonth">0</p>
         </div>
         <div class="stat-card">
-          <h3>Taxa de Conversão</h3>
+          <h3>Taxa de Conversao</h3>
           <p id="conversionRate">0%</p>
         </div>
       </div>
-      <div class="leads-container">
-        <h2>Seus Leads</h2>
+
+      <!-- Formulario de Cadastro -->
+      <div class="form-section">
+        <h2>Cadastrar Novo Lead</h2>
+        <form id="leadForm" class="lead-form">
+          <div class="form-row">
+            <input type="text" id="leadNome" placeholder="Nome completo *" required class="form-input">
+            <input type="email" id="leadEmail" placeholder="E-mail" class="form-input">
+          </div>
+          <div class="form-row">
+            <input type="tel" id="leadTelefone" placeholder="Telefone / WhatsApp" class="form-input">
+            <input type="text" id="leadEmpresa" placeholder="Empresa" class="form-input">
+          </div>
+          <div class="form-row">
+            <select id="leadStatus" class="form-input">
+              <option value="novo">Novo</option>
+              <option value="contato">Em Contato</option>
+              <option value="proposta">Proposta Enviada</option>
+              <option value="negociacao">Em Negociacao</option>
+              <option value="convertido">Convertido</option>
+              <option value="perdido">Perdido</option>
+            </select>
+            <input type="text" id="leadOrigem" placeholder="Origem (ex: Instagram, Indicacao)" class="form-input">
+          </div>
+          <div class="form-row">
+            <textarea id="leadObservacao" placeholder="Observacoes" class="form-input form-textarea"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="btnSalvarLead" class="btn-primary">Salvar Lead</button>
+            <span id="formFeedback" class="form-feedback"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista de Leads -->
+      <div class="leads-section">
+        <div class="leads-header">
+          <h2>Seus Leads</h2>
+          <button id="btnRecarregar" class="btn-secondary">Atualizar</button>
+        </div>
         <div id="leadsList" class="leads-list"></div>
       </div>
+
     </main>
   </div>
 
-    <script type="module" src="app.js?v=4"></script>
+  <script type="module" src="app.js?v=5"></script>
 </body>
 </html>
