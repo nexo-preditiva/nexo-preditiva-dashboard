@@ -77,5 +77,79 @@ if (logoutBtn) {
     }).catch((error) => {
       console.error('Logout error:', error);
     });
+
+             // ================== LEADS MANAGEMENT ==================
+
+// Load and display leads
+async function loadLeads() {
+  if (!currentUser) return;
+  
+  const leadsList = document.getElementById('leadsList');
+  const leadsToday = document.getElementById('leadsToday');
+  const leadsMonth = document.getElementById('leadsMonth');
+  
+  if (!leadsList) return;
+  
+  try {
+    const leadsQuery = query(
+      collection(db, 'leads'),
+      where('userId', '==', currentUser.uid),
+      orderBy('createdAt', 'desc'),
+      limit(50)
+    );
+    
+    const snapshot = await getDocs(leadsQuery);
+    const leads = [];
+    
+    snapshot.forEach((doc) => {
+      leads.push({ id: doc.id, ...doc.data() });
+    });
+    
+    // Update stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayLeads = leads.filter(l => {
+      const leadDate = l.createdAt?.toDate();
+      return leadDate >= today;
+    });
+    
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthLeads = leads.filter(l => {
+      const leadDate = l.createdAt?.toDate();
+      return leadDate >= monthStart;
+    });
+    
+    if (leadsToday) leadsToday.textContent = todayLeads.length;
+    if (leadsMonth) leadsMonth.textContent = monthLeads.length;
+    
+    // Render leads list
+    if (leads.length === 0) {
+      leadsList.innerHTML = '<p style="text-align:center;color:#999;">Nenhum lead cadastrado</p>';
+    } else {
+      leadsList.innerHTML = leads.map(lead => `
+        <div class="lead-item" data-id="${lead.id}">
+          <div class="lead-name">${lead.name || 'Sem nome'}</div>
+          <div class="lead-info">${lead.email || ''} ${lead.phone || ''}</div>
+          <div class="lead-status status-${lead.status || 'new'}">${lead.status || 'novo'}</div>
+        </div>
+      `).join('');
+    }
+    
+    console.log('Leads loaded:', leads.length);
+  } catch (error) {
+    console.error('Error loading leads:', error);
+    if (leadsList) {
+      leadsList.innerHTML = '<p style="color:red;">Erro ao carregar leads</p>';
+    }
+  }
+}
+
+// Call loadLeads when dashboard is shown
+const originalShowDashboard = showDashboard;
+showDashboard = function() {
+  originalShowDashboard();
+  loadLeads();
+};
   });
 }
