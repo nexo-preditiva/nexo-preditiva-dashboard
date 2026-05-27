@@ -4,7 +4,7 @@ import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateC
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 // Elementos DOM
-const carregando = document.getElementById('carregando');
+const carregando = document.getElementById('loading');
 const loginContainer = document.getElementById('loginContainer');
 const dashboard = document.getElementById('dashboard');
 const googleLoginBtn = document.getElementById('googleLoginBtn');
