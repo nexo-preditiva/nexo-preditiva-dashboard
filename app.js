@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { collection, query, where, getDocs, addDoc, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 // DOM Elements
 const loading = document.getElementById('loading');
@@ -9,9 +9,12 @@ const dashboard = document.getElementById('dashboard');
 const googleLoginBtn = document.getElementById('googleLoginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userName = document.getElementById('userName');
+const leadsList = document.getElementById('leadsList');
+const leadsToday = document.getElementById('leadsToday');
+const leadsMonth = document.getElementById('leadsMonth');
+const conversionRate = document.getElementById('conversionRate');
 
 let currentUser = null;
-let currentTenant = null;
 
 // Show/Hide screens
 function showLoading() {
@@ -30,22 +33,58 @@ function showDashboard() {
   if (loading) loading.style.display = 'none';
   if (loginContainer) loginContainer.style.display = 'none';
   if (dashboard) dashboard.style.display = 'flex';
+  loadLeads();
 }
 
-// Initialize - show loading
-showLoading();
+// Load Leads from Firestore
+async function loadLeads() {
+  if (!currentUser || !leadsList) return;
+  leadsList.innerHTML = '<p>Carregando leads...</p>';
+  try {
+    const q = query(
+      collection(db, 'leads'),
+      where('uid', '==', currentUser.uid),
+      orderBy('createdAt', 'desc'),
+      limit(50)
+    );
+    const snapshot = await getDocs(q);
+    const leads = [];
+    snapshot.forEach(doc => leads.push({ id: doc.id, ...doc.data() }));
 
-// Check for redirect result
-getRedirectResult(auth)
-  .then((result) => {
-    if (result) {
-      console.log('Login successful!', result.user.email);
+    // Stats
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const todayLeads = leads.filter(l => l.createdAt && new Date(l.createdAt.seconds * 1000).toDateString() === todayStr);
+    const monthLeads = leads.filter(l => l.createdAt && new Date(l.createdAt.seconds * 1000).getMonth() === now.getMonth());
+    if (leadsToday) leadsToday.textContent = todayLeads.length;
+    if (leadsMonth) leadsMonth.textContent = monthLeads.length;
+    const converted = leads.filter(l => l.status === 'convertido').length;
+    const rate = leads.length > 0 ? Math.round((converted / leads.length) * 100) : 0;
+    if (conversionRate) conversionRate.textContent = rate + '%';
+
+    // Render
+    if (leads.length === 0) {
+      leadsList.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">Nenhum lead cadastrado ainda.</p>';
+      return;
     }
-  })
-  .catch((error) => {
-    console.error('Redirect error:', error);
-    showLogin();
-  });
+    leadsList.innerHTML = leads.map(lead => `
+      <div class="lead-card">
+        <div class="lead-info">
+          <strong>${lead.nome || 'Sem nome'}</strong>
+          <span>${lead.email || ''}</span>
+          <span>${lead.telefone || ''}</span>
+        </div>
+        <span class="lead-status status-${lead.status || 'novo'}">${lead.status || 'novo'}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Erro ao carregar leads:', err);
+    leadsList.innerHTML = '<p style="color:red;">Erro ao carregar leads. Tente novamente.</p>';
+  }
+}
+
+// Initialize
+showLoading();
 
 // Auth state observer
 onAuthStateChanged(auth, (user) => {
@@ -53,103 +92,32 @@ onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (userName) userName.textContent = user.displayName || user.email;
     showDashboard();
-    console.log('User logged in:', user.email);
   } else {
     currentUser = null;
     showLogin();
-    console.log('No user logged in');
   }
 });
 
-// Google login button
+// Google Login
 if (googleLoginBtn) {
-  googleLoginBtn.addEventListener('click', () => {
-    const provider = new GoogleAuthProvider();
-    signInWithRedirect(auth, provider);
+  googleLoginBtn.addEventListener('click', async () => {
+    try {
+      googleLoginBtn.disabled = true;
+      googleLoginBtn.textContent = 'Entrando...';
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error('Erro no login:', err);
+      googleLoginBtn.disabled = false;
+      googleLoginBtn.textContent = 'Entrar com Google';
+      alert('Erro ao fazer login: ' + err.message);
+    }
   });
 }
 
-// Logout button
+// Logout
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
-    signOut(auth).then(() => {
-      console.log('User logged out');
-    }).catch((error) => {
-      console.error('Logout error:', error);
-    });
-
-             // ================== LEADS MANAGEMENT ==================
-
-// Load and display leads
-async function loadLeads() {
-  if (!currentUser) return;
-  
-  const leadsList = document.getElementById('leadsList');
-  const leadsToday = document.getElementById('leadsToday');
-  const leadsMonth = document.getElementById('leadsMonth');
-  
-  if (!leadsList) return;
-  
-  try {
-    const leadsQuery = query(
-      collection(db, 'leads'),
-      where('userId', '==', currentUser.uid),
-      orderBy('createdAt', 'desc'),
-      limit(50)
-    );
-    
-    const snapshot = await getDocs(leadsQuery);
-    const leads = [];
-    
-    snapshot.forEach((doc) => {
-      leads.push({ id: doc.id, ...doc.data() });
-    });
-    
-    // Update stats
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const todayLeads = leads.filter(l => {
-      const leadDate = l.createdAt?.toDate();
-      return leadDate >= today;
-    });
-    
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const monthLeads = leads.filter(l => {
-      const leadDate = l.createdAt?.toDate();
-      return leadDate >= monthStart;
-    });
-    
-    if (leadsToday) leadsToday.textContent = todayLeads.length;
-    if (leadsMonth) leadsMonth.textContent = monthLeads.length;
-    
-    // Render leads list
-    if (leads.length === 0) {
-      leadsList.innerHTML = '<p style="text-align:center;color:#999;">Nenhum lead cadastrado</p>';
-    } else {
-      leadsList.innerHTML = leads.map(lead => `
-        <div class="lead-item" data-id="${lead.id}">
-          <div class="lead-name">${lead.name || 'Sem nome'}</div>
-          <div class="lead-info">${lead.email || ''} ${lead.phone || ''}</div>
-          <div class="lead-status status-${lead.status || 'new'}">${lead.status || 'novo'}</div>
-        </div>
-      `).join('');
-    }
-    
-    console.log('Leads loaded:', leads.length);
-  } catch (error) {
-    console.error('Error loading leads:', error);
-    if (leadsList) {
-      leadsList.innerHTML = '<p style="color:red;">Erro ao carregar leads</p>';
-    }
-  }
-}
-
-// Call loadLeads when dashboard is shown
-const originalShowDashboard = showDashboard;
-showDashboard = function() {
-  originalShowDashboard();
-  loadLeads();
-};
+    signOut(auth).catch(err => console.error('Erro ao sair:', err));
   });
 }
