@@ -14,6 +14,7 @@
   <!-- Login -->
   <div id="loginContainer" class="login-container" style="display:none">
     <div class="login-box">
+      <div class="login-logo">NP</div>
       <h1>NEXO PREDITIVA</h1>
       <p>Sistema de Gestao de Leads</p>
       <button id="googleLoginBtn" class="btn-google">Entrar com Google</button>
@@ -23,7 +24,10 @@
   <!-- Dashboard -->
   <div id="dashboard" class="dashboard" style="display:none">
     <header class="dash-header">
-      <h1>NEXO PREDITIVA</h1>
+      <div class="header-left">
+        <div class="logo-mark">NP</div>
+        <h1>NEXO PREDITIVA</h1>
+      </div>
       <div class="user-info">
         <span id="userName"></span>
         <button id="logoutBtn" class="btn-logout">Sair</button>
@@ -35,20 +39,36 @@
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
-          <h3>Leads Hoje</h3>
-          <p id="leadsToday">0</p>
+          <div class="stat-icon">&#128200;</div>
+          <div class="stat-info">
+            <h3>Leads Hoje</h3>
+            <p id="leadsToday">0</p>
+          </div>
         </div>
         <div class="stat-card">
-          <h3>Total do Mes</h3>
-          <p id="leadsMonth">0</p>
+          <div class="stat-icon">&#128197;</div>
+          <div class="stat-info">
+            <h3>Total do Mes</h3>
+            <p id="leadsMonth">0</p>
+          </div>
         </div>
         <div class="stat-card">
-          <h3>Taxa de Conversao</h3>
-          <p id="conversionRate">0%</p>
+          <div class="stat-icon">&#9989;</div>
+          <div class="stat-info">
+            <h3>Convertidos</h3>
+            <p id="leadsConverted">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">&#128293;</div>
+          <div class="stat-info">
+            <h3>Taxa de Conversao</h3>
+            <p id="conversionRate">0%</p>
+          </div>
         </div>
       </div>
 
-      <!-- Formulario de Cadastro -->
+      <!-- Form Section -->
       <div class="form-section">
         <h2>Cadastrar Novo Lead</h2>
         <form id="leadForm" class="lead-form">
@@ -72,27 +92,76 @@
             <input type="text" id="leadOrigem" placeholder="Origem (ex: Instagram, Indicacao)" class="form-input">
           </div>
           <div class="form-row">
-            <textarea id="leadObservacao" placeholder="Observacoes" class="form-input form-textarea"></textarea>
+            <textarea id="leadObservacao" placeholder="Observacoes" class="form-input" rows="2"></textarea>
           </div>
-          <div class="form-actions">
-            <button type="submit" id="btnSalvarLead" class="btn-primary">Salvar Lead</button>
-            <span id="formFeedback" class="form-feedback"></span>
-          </div>
+          <button type="submit" id="btnSalvarLead" class="btn-primary">Salvar Lead</button>
+          <div id="formFeedback" class="form-feedback"></div>
         </form>
       </div>
 
-      <!-- Lista de Leads -->
+      <!-- Leads Section -->
       <div class="leads-section">
         <div class="leads-header">
           <h2>Seus Leads</h2>
-          <button id="btnRecarregar" class="btn-secondary">Atualizar</button>
+          <div class="leads-controls">
+            <input type="text" id="searchInput" placeholder="Buscar lead..." class="search-input">
+            <select id="filterStatus" class="filter-select">
+              <option value="">Todos os status</option>
+              <option value="novo">Novo</option>
+              <option value="contato">Em Contato</option>
+              <option value="proposta">Proposta Enviada</option>
+              <option value="negociacao">Em Negociacao</option>
+              <option value="convertido">Convertido</option>
+              <option value="perdido">Perdido</option>
+            </select>
+            <button id="btnRecarregar" class="btn-secondary">Atualizar</button>
+          </div>
         </div>
-        <div id="leadsList" class="leads-list"></div>
+        <div id="leadsList"></div>
       </div>
 
     </main>
   </div>
 
-  <script type="module" src="app.js?v=5"></script>
+  <!-- Modal Edicao -->
+  <div id="editModal" class="modal" style="display:none">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Editar Lead</h3>
+        <button id="closeModal" class="modal-close">&times;</button>
+      </div>
+      <form id="editForm">
+        <input type="hidden" id="editLeadId">
+        <div class="form-row">
+          <input type="text" id="editNome" placeholder="Nome completo *" required class="form-input">
+          <input type="email" id="editEmail" placeholder="E-mail" class="form-input">
+        </div>
+        <div class="form-row">
+          <input type="tel" id="editTelefone" placeholder="Telefone / WhatsApp" class="form-input">
+          <input type="text" id="editEmpresa" placeholder="Empresa" class="form-input">
+        </div>
+        <div class="form-row">
+          <select id="editStatus" class="form-input">
+            <option value="novo">Novo</option>
+            <option value="contato">Em Contato</option>
+            <option value="proposta">Proposta Enviada</option>
+            <option value="negociacao">Em Negociacao</option>
+            <option value="convertido">Convertido</option>
+            <option value="perdido">Perdido</option>
+          </select>
+          <input type="text" id="editOrigem" placeholder="Origem" class="form-input">
+        </div>
+        <div class="form-row">
+          <textarea id="editObservacao" placeholder="Observacoes" class="form-input" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Salvar Alteracoes</button>
+          <button type="button" id="btnCancelarEdit" class="btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
