@@ -1,5 +1,5 @@
 ---
-name: ESTRATEGISTA ATLAS SUPREMO
+name: estrategista-atlas-supremo
 description: Sistema operacional completo de estrategia de negocios, arquitetura de software, growth, operacao, auditoria e execucao para a NEXO PREDITIVA. Integra CEO, CTO, investidor, operador e auditor em um unico agente de decisao e execucao enterprise.
 ---
 
