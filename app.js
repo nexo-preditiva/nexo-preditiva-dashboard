@@ -1,5 +1,5 @@
 import { auth, db } from './firebase-config.js';
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 // DOM Elements
@@ -66,7 +66,7 @@ function showDashboard() {
 // Load Leads
 async function loadLeads() {
   if (!currentUser || !leadsList) return;
-  leadsList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Carregando leads...</p>';
+  leadsList.innerHTML = '<p style="text-align:center;color:#888;">Carregando leads...</p>';
   try {
     const q = query(
       collection(db, 'leads'),
@@ -81,7 +81,7 @@ async function loadLeads() {
     renderLeads();
   } catch (err) {
     console.error('Erro ao carregar leads:', err);
-    leadsList.innerHTML = '<p style="text-align:center;color:#f44336;padding:20px;">Erro ao carregar leads.</p>';
+    leadsList.innerHTML = '<p style="text-align:center;color:red;">Erro ao carregar leads.</p>';
   }
 }
 
@@ -110,7 +110,7 @@ function renderLeads() {
     (l.telefone || '').toLowerCase().includes(search)
   );
   if (filtered.length === 0) {
-    leadsList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Nenhum lead encontrado.</p>';
+    leadsList.innerHTML = '<p style="text-align:center;color:#888;">Nenhum lead encontrado.</p>';
     return;
   }
   leadsList.innerHTML = filtered.map(lead => {
@@ -118,22 +118,22 @@ function renderLeads() {
     const label = STATUS_LABELS[lead.status] || 'Novo';
     const date = lead.createdAt ? new Date(lead.createdAt.seconds * 1000).toLocaleDateString('pt-BR') : '';
     return `
-      <div class="lead-card" data-id="${lead.id}">
-        <div class="lead-card-header">
-          <div class="lead-name">${lead.nome || 'Sem nome'}</div>
+      <div class="lead-card">
+        <div class="lead-header">
+          <strong class="lead-name">${lead.nome || 'Sem nome'}</strong>
           <span class="lead-status" style="background:${color}">${label}</span>
         </div>
-        <div class="lead-card-body">
-          ${lead.empresa ? `<span class="lead-detail">&#127970; ${lead.empresa}</span>` : ''}
-          ${lead.email ? `<span class="lead-detail">&#9993; ${lead.email}</span>` : ''}
-          ${lead.telefone ? `<span class="lead-detail">&#128222; ${lead.telefone}</span>` : ''}
-          ${lead.origem ? `<span class="lead-detail">&#128205; ${lead.origem}</span>` : ''}
-          ${date ? `<span class="lead-detail">&#128197; ${date}</span>` : ''}
+        <div class="lead-details">
+          ${lead.empresa ? `<span>&#127970; ${lead.empresa}</span>` : ''}
+          ${lead.email ? `<span>&#9993; ${lead.email}</span>` : ''}
+          ${lead.telefone ? `<span>&#128222; ${lead.telefone}</span>` : ''}
+          ${lead.origem ? `<span>&#128205; ${lead.origem}</span>` : ''}
+          ${date ? `<span>&#128197; ${date}</span>` : ''}
         </div>
         ${lead.observacao ? `<div class="lead-obs">${lead.observacao}</div>` : ''}
-        <div class="lead-card-actions">
-          <button class="btn-edit" onclick="openEditModal('${lead.id}')">Editar</button>
-          <button class="btn-delete" onclick="deleteLead('${lead.id}')">Excluir</button>
+        <div class="lead-actions">
+          <button onclick="openEditModal('${lead.id}')" class="btn-edit">Editar</button>
+          <button onclick="deleteLead('${lead.id}')" class="btn-delete">Excluir</button>
         </div>
       </div>
     `;
@@ -162,12 +162,18 @@ async function addLead(e) {
       createdAt: serverTimestamp()
     });
     if (leadForm) leadForm.reset();
-    if (formFeedback) { formFeedback.textContent = 'Lead salvo com sucesso!'; formFeedback.className = 'form-feedback success'; }
+    if (formFeedback) {
+      formFeedback.textContent = 'Lead salvo com sucesso!';
+      formFeedback.className = 'form-feedback success';
+    }
     setTimeout(() => { if (formFeedback) formFeedback.textContent = ''; }, 3000);
     loadLeads();
   } catch (err) {
     console.error('Erro ao salvar lead:', err);
-    if (formFeedback) { formFeedback.textContent = 'Erro ao salvar. Tente novamente.'; formFeedback.className = 'form-feedback error'; }
+    if (formFeedback) {
+      formFeedback.textContent = 'Erro ao salvar. Tente novamente.';
+      formFeedback.className = 'form-feedback error';
+    }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Salvar Lead'; }
   }
@@ -233,6 +239,18 @@ window.deleteLead = async function(id) {
 
 // Init
 showLoading();
+
+// Handle redirect result first (mobile login)
+getRedirectResult(auth).then(result => {
+  if (result && result.user) {
+    // User logged in via redirect - onAuthStateChanged will handle it
+    console.log('Login via redirect bem-sucedido:', result.user.displayName);
+  }
+}).catch(err => {
+  console.error('Erro no redirect result:', err);
+  showLogin();
+});
+
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUser = user;
@@ -248,8 +266,8 @@ if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', async () => {
     try {
       googleLoginBtn.disabled = true;
-      googleLoginBtn.textContent = 'Entrando...';
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      googleLoginBtn.textContent = 'Redirecionando...';
+      await signInWithRedirect(auth, new GoogleAuthProvider());
     } catch (err) {
       console.error('Erro no login:', err);
       googleLoginBtn.disabled = false;
@@ -258,6 +276,7 @@ if (googleLoginBtn) {
     }
   });
 }
+
 if (logoutBtn) logoutBtn.addEventListener('click', () => signOut(auth).catch(console.error));
 if (leadForm) leadForm.addEventListener('submit', addLead);
 if (btnRecarregar) btnRecarregar.addEventListener('click', loadLeads);
