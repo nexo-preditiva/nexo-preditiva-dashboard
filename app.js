@@ -1,5 +1,5 @@
 import { auth, db } from './firebase-config.js';
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 // DOM Elements
@@ -266,8 +266,8 @@ if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', async () => {
     try {
       googleLoginBtn.disabled = true;
-      googleLoginBtn.textContent = 'Redirecionando...';
-      await signInWithRedirect(auth, new GoogleAuthProvider());
+      googleLoginBtn.textContent = 'Entrando...';
+      await signInWithPopup(auth, new GoogleAuthProvider());
     } catch (err) {
       console.error('Erro no login:', err);
       googleLoginBtn.disabled = false;
