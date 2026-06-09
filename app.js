@@ -240,18 +240,27 @@ window.deleteLead = async function(id) {
 // Init
 showLoading();
 
-// Handle redirect result first (mobile login)
+// Timeout de seguranca: se onAuthStateChanged nao disparar em 8s, mostra login
+const authTimeout = setTimeout(() => {
+  console.warn('Auth timeout - forcando showLogin()');
+  showLogin();
+}, 8000);
+
+// Handle redirect result first (mobile/Safari login)
 getRedirectResult(auth).then(result => {
   if (result && result.user) {
-    // User logged in via redirect - onAuthStateChanged will handle it
+    // Login via redirect bem-sucedido - onAuthStateChanged ira lidar
     console.log('Login via redirect bem-sucedido:', result.user.displayName);
   }
+  // Se result e null (sem redirect pendente), nao faz nada - aguarda onAuthStateChanged
 }).catch(err => {
   console.error('Erro no redirect result:', err);
+  clearTimeout(authTimeout);
   showLogin();
 });
 
 onAuthStateChanged(auth, (user) => {
+    clearTimeout(authTimeout); // Cancela o timeout de seguranca
   if (user) {
     currentUser = user;
     if (userName) userName.textContent = user.displayName || user.email;
