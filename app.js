@@ -1,5 +1,5 @@
 import { auth, db } from './firebase-config.js';
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 // DOM Elements
@@ -244,7 +244,7 @@ showLoading();
 const authTimeout = setTimeout(() => {
   console.warn('Auth timeout - forcando showLogin()');
   showLogin();
-}, 8000);
+}, 15000);
 
 // Handle redirect result first (mobile/Safari login)
 getRedirectResult(auth).then(result => {
@@ -276,7 +276,7 @@ if (googleLoginBtn) {
     try {
       googleLoginBtn.disabled = true;
       googleLoginBtn.textContent = 'Entrando...';
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);         if (isMobile) {           await signInWithRedirect(auth, new GoogleAuthProvider());         } else {           await signInWithPopup(auth, new GoogleAuthProvider());         }
     } catch (err) {
       console.error('Erro no login:', err);
       googleLoginBtn.disabled = false;
