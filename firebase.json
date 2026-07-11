@@ -3,11 +3,27 @@
     "public": ".",
     "ignore": [
       "firebase.json",
-      "**/.*",
+      "**.*",
       "**/node_modules/**",
       "README.md"
     ],
     "rewrites": [
+      {
+        "source": "/crm",
+        "destination": "/crm.html"
+      },
+      {
+        "source": "/crm/**",
+        "destination": "/crm.html"
+      },
+      {
+        "source": "/relatorios",
+        "destination": "/relatorios.html"
+      },
+      {
+        "source": "/relatorios/**",
+        "destination": "/relatorios.html"
+      },
       {
         "source": "**",
         "destination": "/index.html"
