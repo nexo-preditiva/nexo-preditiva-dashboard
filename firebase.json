@@ -3,9 +3,11 @@
     "public": ".",
     "ignore": [
       "firebase.json",
-      "**.*",
       "**/node_modules/**",
-      "README.md"
+      "README.md",
+      "SKILL.md",
+      "SKILL-GESTAO-COMERCIAL.md",
+      ".github/**"
     ],
     "rewrites": [
       {
@@ -27,17 +29,6 @@
       {
         "source": "**",
         "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**/*.@(js|css|html)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          }
-        ]
       }
     ]
   }
