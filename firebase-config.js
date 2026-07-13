@@ -3,12 +3,12 @@ import { getAuth } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBjZmY3fL-Jyl9CJ5w-pNv06e4sTqmO5RE",
-  authDomain: "studio-8906801948-ecb0a.firebaseapp.com",
-  projectId: "studio-8906801948-ecb0a",
-  storageBucket: "studio-8906801948-ecb0a.firebasestorage.app",
-  messagingSenderId: "195954628052",
-  appId: "1:195954628052:web:8bb933952efd108e13b241"
+  apiKey: "AIzaSyClvg8UCpPlJUQt-bqZbLCXOlOE_7zrP-w",
+  authDomain: "nexo-preditiva-mvp.firebaseapp.com",
+  projectId: "nexo-preditiva-mvp",
+  storageBucket: "nexo-preditiva-mvp.firebasestorage.app",
+  messagingSenderId: "579302029637",
+  appId: "1:579302029637:web:867153b39b21343605262c"
 };
 
 const app = initializeApp(firebaseConfig);
