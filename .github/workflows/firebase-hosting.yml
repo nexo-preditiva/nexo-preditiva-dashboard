@@ -22,6 +22,7 @@ jobs:
         with:
           workload_identity_provider: projects/579302029637/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions
           service_account: firebase-adminsdk-fbsvc@nexo-preditiva-mvp.iam.gserviceaccount.com
+          audience: https://github.com/nexo-preditiva
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
