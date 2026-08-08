@@ -20,12 +20,12 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/579302029637/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions
-          service_account: firebase-adminsdk-fbsvc@nexo-preditiva-mvp.iam.gserviceaccount.com
+          workload_identity_provider: projects/195954628052/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions
+          service_account: firebase-adminsdk-fbsvc@studio-8906801948-ecb0a.iam.gserviceaccount.com
           audience: https://github.com/nexo-preditiva
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
       - name: Deploy to Firebase Hosting
-        run: firebase deploy --only hosting --project nexo-preditiva-mvp
+        run: firebase deploy --only hosting:nexo-preditiva-dashboard --project studio-8906801948-ecb0a
