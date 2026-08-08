@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "nexo-preditiva-dashboard",
     "public": ".",
     "ignore": [
       "firebase.json",
